@@ -403,9 +403,7 @@ static errArray cValidateBuf(const void* goXmlSource,
 */
 import "C"
 import (
-	"runtime"
 	"strings"
-	"time"
 	"unsafe"
 )
 
@@ -532,20 +530,5 @@ func freeSchemaPtr(xsdHandler *XsdHandler) {
 func freeDocPtr(xmlHandler *XmlHandler) {
 	if xmlHandler.docPtr != nil {
 		C.xmlFreeDoc(xmlHandler.docPtr)
-	}
-}
-
-// Ticker for gc
-func gcTicker(d time.Duration, quit chan struct{}) {
-	ticker := time.NewTicker(d)
-	for {
-		select {
-		case <-ticker.C:
-			runtime.GC()
-			//C.malloc_trim(0)
-		case <-quit:
-			ticker.Stop()
-			return
-		}
 	}
 }

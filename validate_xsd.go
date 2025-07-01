@@ -47,8 +47,6 @@ const (
 	ValidErrDefault Options = 128 << iota // Default validation error output
 )
 
-var quit chan struct{}
-
 // Init initializes libxml2, see http://xmlsoft.org/threads.html.
 func Init() error {
 	g.Lock()
@@ -62,12 +60,11 @@ func Init() error {
 	return nil
 }
 
-// InitWithGc initializes lbxml2 with a goroutine that runs the go gc every d duration.
-// Not required but might help to keep the memory footprint at bay when doing tons of validations.
+// InitWithGc is the same as [Init].
+//
+// Deprecated: kept for backward compatibility.
 func InitWithGc(d time.Duration) {
 	Init()
-	quit = make(chan struct{})
-	go gcTicker(d, quit)
 }
 
 // Cleanup cleans up libxml2 memory and finishes gc goroutine when running.
@@ -76,10 +73,6 @@ func Cleanup() {
 	defer g.Unlock()
 	libXml2Cleanup()
 	g.setInitialized(false)
-	if quit != nil {
-		quit <- struct{}{}
-		quit = nil
-	}
 }
 
 // NewXmlHandlerMem creates a xml handler struct.
