@@ -5,6 +5,7 @@ package xsdvalidate
 
 import "C"
 import (
+	"runtime"
 	"sync"
 	"time"
 )
@@ -55,7 +56,12 @@ func NewXmlHandlerMem(inXml []byte, options Options) (*XmlHandler, error) {
 	onceInit()
 
 	xPtr, err := parseXmlMem(inXml, options)
-	return &XmlHandler{xPtr}, err
+	if err != nil {
+		return nil, err
+	}
+	res := &XmlHandler{docPtr: xPtr}
+	res.cleanup = runtime.AddCleanup(res, freeDocPtr, xPtr)
+	return res, nil
 }
 
 // NewXsdHandlerUrl creates a xsd handler struct.
@@ -66,7 +72,12 @@ func NewXsdHandlerUrl(url string, options Options) (*XsdHandler, error) {
 	onceInit()
 
 	sPtr, err := parseUrlSchema(url, options)
-	return &XsdHandler{sPtr}, err
+	if err != nil {
+		return nil, err
+	}
+	res := &XsdHandler{schemaPtr: sPtr}
+	res.cleanup = runtime.AddCleanup(res, freeSchemaPtr, sPtr)
+	return res, nil
 }
 
 // NewXsdHandlerMem creates an xsd handler struct.
@@ -77,7 +88,12 @@ func NewXsdHandlerMem(inSchema []byte, options Options) (*XsdHandler, error) {
 	onceInit()
 
 	sPtr, err := parseMemSchema(inSchema, options)
-	return &XsdHandler{sPtr}, err
+	if err != nil {
+		return nil, err
+	}
+	res := &XsdHandler{schemaPtr: sPtr}
+	res.cleanup = runtime.AddCleanup(res, freeSchemaPtr, sPtr)
+	return res, nil
 }
 
 // Validate validates an xmlHandler against an xsdHandler and returns a ValidationError.
@@ -109,10 +125,12 @@ func (xsdHandler *XsdHandler) ValidateMem(inXml []byte, options Options) error {
 
 // Free frees the wrapped schemaPtr, call this when this handler is not needed anymore.
 func (xsdHandler *XsdHandler) Free() {
-	freeSchemaPtr(xsdHandler)
+	xsdHandler.cleanup.Stop()
+	freeSchemaPtr(xsdHandler.schemaPtr)
 }
 
 // Free frees the wrapped xml docPtr, call this when this handler is not needed anymore.
 func (xmlHandler *XmlHandler) Free() {
-	freeDocPtr(xmlHandler)
+	xmlHandler.cleanup.Stop()
+	freeDocPtr(xmlHandler.docPtr)
 }

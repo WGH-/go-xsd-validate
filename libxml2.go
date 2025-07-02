@@ -396,6 +396,7 @@ static errArray cValidateBuf(const void* goXmlSource,
 */
 import "C"
 import (
+	"runtime"
 	"strings"
 	"unsafe"
 )
@@ -403,11 +404,13 @@ import (
 // XsdHandler handles schema parsing and validation and wraps a pointer to libxml2's xmlSchemaPtr.
 type XsdHandler struct {
 	schemaPtr C.xmlSchemaPtr
+	cleanup   runtime.Cleanup
 }
 
 // XmlHandler handles xml parsing and wraps a pointer to libxml2's xmlDocPtr.
 type XmlHandler struct {
-	docPtr C.xmlDocPtr
+	docPtr  C.xmlDocPtr
+	cleanup runtime.Cleanup
 }
 
 // Initializes the libxml2 parser, suggested for multithreading
@@ -474,6 +477,8 @@ func handleErrArray(errSlice []C.struct_simpleXmlError) ValidationError {
 // Helper function for validating given an xml document
 func validateWithXsd(xmlHandler *XmlHandler, xsdHandler *XsdHandler) error {
 	sErr, err := C.cValidate(xmlHandler.docPtr, xsdHandler.schemaPtr)
+	runtime.KeepAlive(xmlHandler)
+	runtime.KeepAlive(xsdHandler)
 	defer C.freeErrArray(&sErr)
 	if err != nil {
 		errSlice := (*[1 << 30]C.struct_simpleXmlError)(unsafe.Pointer(sErr.data))[:sErr.len:sErr.len]
@@ -487,6 +492,7 @@ func validateBufWithXsd(inXml []byte, options Options, xsdHandler *XsdHandler) e
 	strXml := C.CBytes(inXml)
 	defer C.free(unsafe.Pointer(strXml))
 	sErr, err := C.cValidateBuf(strXml, C.int(len(inXml)), C.short(options), xsdHandler.schemaPtr)
+	runtime.KeepAlive(xsdHandler)
 	defer C.freeErrArray(&sErr)
 	if err != nil {
 		errSlice := (*[1 << 30]C.struct_simpleXmlError)(unsafe.Pointer(sErr.data))[:sErr.len:sErr.len]
@@ -508,15 +514,15 @@ func validateBufWithXsd(inXml []byte, options Options, xsdHandler *XsdHandler) e
 }
 
 // Wrapper for the xmlSchemaFree function
-func freeSchemaPtr(xsdHandler *XsdHandler) {
-	if xsdHandler.schemaPtr != nil {
-		C.xmlSchemaFree(xsdHandler.schemaPtr)
+func freeSchemaPtr(schemaPtr C.xmlSchemaPtr) {
+	if schemaPtr != nil {
+		C.xmlSchemaFree(schemaPtr)
 	}
 }
 
 // Wrapper for the xmlFreeDoc function
-func freeDocPtr(xmlHandler *XmlHandler) {
-	if xmlHandler.docPtr != nil {
-		C.xmlFreeDoc(xmlHandler.docPtr)
+func freeDocPtr(docPtr C.xmlDocPtr) {
+	if docPtr != nil {
+		C.xmlFreeDoc(docPtr)
 	}
 }
