@@ -11,9 +11,6 @@ import (
 )
 
 func TestAddressUrlHandlerPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	handler, err := NewXsdHandlerUrl("./examples/test_address.xsd", ParsErrVerbose)
 	if err != nil {
 		fmt.Printf("%s %s\n", t.Name(), err.Error())
@@ -23,9 +20,6 @@ func TestAddressUrlHandlerPass(t *testing.T) {
 }
 
 func TestXsdUrlHandlerPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	handler, err := NewXsdHandlerUrl("./examples/test1_split.xsd", ParsErrVerbose)
 	if err != nil {
 		fmt.Printf("%s %s\n", t.Name(), err.Error())
@@ -34,9 +28,6 @@ func TestXsdUrlHandlerPass(t *testing.T) {
 	defer handler.Free()
 }
 func TestXsdUrlHandlerFail(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	handler, err := NewXsdHandlerUrl("examples/test1_fail.xsd", ParsErrVerbose)
 	fmt.Printf("Error OK:\n%s %s\n", t.Name(), err.Error())
 	if err == nil {
@@ -45,9 +36,6 @@ func TestXsdUrlHandlerFail(t *testing.T) {
 	defer handler.Free()
 }
 func TestXmlMemHandlerPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xmlFilePass, err := os.Open("examples/test1_pass.xml")
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -66,9 +54,6 @@ func TestXmlMemHandlerPass(t *testing.T) {
 }
 
 func TestXmlMemHandlerFail(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xmlFilePass, err := os.Open("examples/test1_fail1.xml")
 	if err != nil {
 		panic(err)
@@ -87,9 +72,6 @@ func TestXmlMemHandlerFail(t *testing.T) {
 }
 
 func TestValidateWithXsdHandlerPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xsdhandler, err := NewXsdHandlerUrl("examples/test1_split.xsd", ParsErrDefault)
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -121,9 +103,6 @@ func TestValidateWithXsdHandlerPass(t *testing.T) {
 }
 
 func TestValidateWithXsdHandlerHttpPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xsdhandler, err := NewXsdHandlerUrl("http://schemas.opengis.net/cat/csw/3.0/cswAll.xsd", ParsErrDefault)
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -155,9 +134,6 @@ func TestValidateWithXsdHandlerHttpPass(t *testing.T) {
 }
 
 func TestValidateWithXsdHandlerFail(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xsdhandler, err := NewXsdHandlerUrl("examples/test1_split.xsd", ParsErrVerbose)
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -188,9 +164,6 @@ func TestValidateWithXsdHandlerFail(t *testing.T) {
 }
 
 func TestValidateMemWithXsdHandlerPass(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xsdhandler, err := NewXsdHandlerUrl("examples/test1_split.xsd", ParsErrDefault)
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -215,9 +188,6 @@ func TestValidateMemWithXsdHandlerPass(t *testing.T) {
 }
 
 func TestValidateMemWithXsdHandlerFail(t *testing.T) {
-	Init()
-	defer Cleanup()
-
 	xsdhandler, err := NewXsdHandlerUrl("examples/test1_split.xsd", ParsErrVerbose)
 	if err != nil {
 		fmt.Printf("Error: %s %s\n", t.Name(), err.Error())
@@ -238,18 +208,4 @@ func TestValidateMemWithXsdHandlerFail(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-}
-
-func TestIsInitialized(t *testing.T) {
-	if err := Init(); err != nil {
-		t.Fail()
-	}
-	if err := Init(); err == nil {
-		t.Fail()
-	}
-	Cleanup()
-	if err := Init(); err != nil {
-		t.Fail()
-	}
-	Cleanup()
 }

@@ -6,32 +6,12 @@ package xsdvalidate
 import "C"
 import (
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
-type guard struct {
-	sync.Mutex
-	initialized uint32
-}
-
-func (guard *guard) isInitialized() bool {
-	if atomic.LoadUint32(&guard.initialized) == 0 {
-		return false
-	}
-	return true
-}
-
-func (guard *guard) setInitialized(b bool) {
-	switch b {
-	case true:
-		atomic.StoreUint32(&guard.initialized, 1)
-	case false:
-		atomic.StoreUint32(&guard.initialized, 0)
-	}
-}
-
-var g guard
+var onceInit = sync.OnceFunc(func() {
+	libXml2Init()
+})
 
 // Options type for parser/validation options.
 type Options uint8
@@ -47,16 +27,11 @@ const (
 	ValidErrDefault Options = 128 << iota // Default validation error output
 )
 
-// Init initializes libxml2, see http://xmlsoft.org/threads.html.
+// Init initialializes libxml2.
+//
+// Deprecated: it's not necessary to call Init explicitly.
 func Init() error {
-	g.Lock()
-	defer g.Unlock()
-	if g.isInitialized() {
-		return Libxml2Error{errorMessage{"Libxml2 already initialized"}}
-	}
-
-	libXml2Init()
-	g.setInitialized(true)
+	onceInit()
 	return nil
 }
 
@@ -67,22 +42,17 @@ func InitWithGc(d time.Duration) {
 	Init()
 }
 
-// Cleanup cleans up libxml2 memory and finishes gc goroutine when running.
-func Cleanup() {
-	g.Lock()
-	defer g.Unlock()
-	libXml2Cleanup()
-	g.setInitialized(false)
-}
+// Cleanup does nothing, and kept for backward compatibility.
+//
+// Deprecated: this function is no-op.
+func Cleanup() {}
 
 // NewXmlHandlerMem creates a xml handler struct.
 // If an error is returned it can be of type Libxml2Error or XmlParserError.
 // Always use the Free() method when done using this handler or memory will be leaking.
 // The go garbage collector will not collect the allocated resources.
 func NewXmlHandlerMem(inXml []byte, options Options) (*XmlHandler, error) {
-	if !g.isInitialized() {
-		return nil, Libxml2Error{errorMessage{"Libxml2 not initialized"}}
-	}
+	onceInit()
 
 	xPtr, err := parseXmlMem(inXml, options)
 	return &XmlHandler{xPtr}, err
@@ -93,11 +63,8 @@ func NewXmlHandlerMem(inXml []byte, options Options) (*XmlHandler, error) {
 // If an error is returned it can be of type Libxml2Error or XsdParserError.
 // The go garbage collector will not collect the allocated resources.
 func NewXsdHandlerUrl(url string, options Options) (*XsdHandler, error) {
-	g.Lock()
-	defer g.Unlock()
-	if !g.isInitialized() {
-		return nil, Libxml2Error{errorMessage{"Libxml2 not initialized"}}
-	}
+	onceInit()
+
 	sPtr, err := parseUrlSchema(url, options)
 	return &XsdHandler{sPtr}, err
 }
@@ -107,11 +74,8 @@ func NewXsdHandlerUrl(url string, options Options) (*XsdHandler, error) {
 // If an error is returned it can be of type Libxml2Error or XsdParserError.
 // The go garbage collector will not collect the allocated resources.
 func NewXsdHandlerMem(inSchema []byte, options Options) (*XsdHandler, error) {
-	g.Lock()
-	defer g.Unlock()
-	if !g.isInitialized() {
-		return nil, Libxml2Error{errorMessage{"Libxml2 not initialized"}}
-	}
+	onceInit()
+
 	sPtr, err := parseMemSchema(inSchema, options)
 	return &XsdHandler{sPtr}, err
 }
@@ -120,10 +84,6 @@ func NewXsdHandlerMem(inSchema []byte, options Options) (*XsdHandler, error) {
 // If an error is returned it is of type Libxml2Error, XsdParserError, XmlParserError or ValidationError.
 // Both xmlHandler and xsdHandler have to be created first.
 func (xsdHandler *XsdHandler) Validate(xmlHandler *XmlHandler, options Options) error {
-	if !g.isInitialized() {
-		return Libxml2Error{errorMessage{"Libxml2 not initialized"}}
-	}
-
 	if xsdHandler == nil || xsdHandler.schemaPtr == nil {
 		return XsdParserError{errorMessage{"Xsd handler not properly initialized"}}
 
@@ -139,9 +99,6 @@ func (xsdHandler *XsdHandler) Validate(xmlHandler *XmlHandler, options Options) 
 // If an error is returned it can be of type Libxml2Error, XsdParserError, XmlParserError or ValidationError.
 // The xsdHandler has to be created first.
 func (xsdHandler *XsdHandler) ValidateMem(inXml []byte, options Options) error {
-	if !g.isInitialized() {
-		return Libxml2Error{errorMessage{"Libxml2 not initialized"}}
-	}
 	if xsdHandler == nil || xsdHandler.schemaPtr == nil {
 		return XsdParserError{errorMessage{"Xsd handler not properly initialized"}}
 

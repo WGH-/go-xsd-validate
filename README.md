@@ -25,8 +25,6 @@ Check [this](./examples/_server/simple/simple.go) for a simple http server examp
 To see how this could be plugged into middleware see the [go-chi](https://github.com/go-chi/chi) [example](./examples/_server/chi/chi.go) I came up with. 
 
 ```go
-	xsdvalidate.Init()
-	defer xsdvalidate.Cleanup()
 	xsdhandler, err := xsdvalidate.NewXsdHandlerUrl("examples/test1_split.xsd", xsdvalidate.ParsErrDefault)
 	if err != nil {
 		panic(err)

@@ -44,8 +44,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	addr := ":9999"
-	xsdvalidate.Init()
-	defer xsdvalidate.Cleanup()
 	var err error
 	xsdHandler, err = xsdvalidate.NewXsdHandlerUrl("http://schemas.opengis.net/cat/csw/3.0/cswAll.xsd", xsdvalidate.ParsErrDefault)
 	defer xsdHandler.Free()

@@ -46,8 +46,6 @@ func validateBody(next http.Handler) http.Handler {
 
 func main() {
 	addr := ":9999"
-	xsdvalidate.Init()
-	defer xsdvalidate.Cleanup()
 	var err error
 
 	xsdHandler, err = xsdvalidate.NewXsdHandlerUrl("address.xsd", xsdvalidate.ParsErrDefault)

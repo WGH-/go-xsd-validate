@@ -9,10 +9,7 @@ import (
 )
 
 // An example on how to use the package.
-// Init() is only required once before parsing and validating, and Cleanup() respectively when finished.
 func Example() {
-	xsdvalidate.Init()
-	defer xsdvalidate.Cleanup()
 	xsdhandler, err := xsdvalidate.NewXsdHandlerUrl("examples/test1_split.xsd", xsdvalidate.ParsErrDefault)
 	if err != nil {
 		panic(err)

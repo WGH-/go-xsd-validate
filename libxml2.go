@@ -112,13 +112,6 @@ static void init() {
     xmlInitParser();
 }
 
-static void cleanup() {
-#if LIBXML_VERSION < 21000
-    xmlSchemaCleanupTypes();
-#endif
-    xmlCleanupParser();
-}
-
 static void genErrorCallback(void* ctx, const char* message, ...) {
     errCtx* ectx = ctx;
     char* newLine = malloc(GO_ERR_INIT);
@@ -420,11 +413,6 @@ type XmlHandler struct {
 // Initializes the libxml2 parser, suggested for multithreading
 func libXml2Init() {
 	C.init()
-}
-
-// Cleans up the libxml2 parser
-func libXml2Cleanup() {
-	C.cleanup()
 }
 
 // The helper function for parsing xml

@@ -17,9 +17,6 @@ const maxGoroutines = 4
 
 func TestMemParseXsd(t *testing.T) {
 	fmt.Println("Now Running TestMemParseXsd")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
@@ -42,9 +39,6 @@ func TestMemParseXsd(t *testing.T) {
 }
 func TestMemParseXml(t *testing.T) {
 	fmt.Println("Now Running TestMemParseXml")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
@@ -84,9 +78,6 @@ func TestMemParseXml(t *testing.T) {
 
 func TestMemParseAltXml(t *testing.T) {
 	fmt.Println("Now Running TestMemParseAltXml")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
@@ -154,9 +145,6 @@ func TestMemParseAltXml(t *testing.T) {
 
 func TestMemValidate(t *testing.T) {
 	fmt.Println("Now Running TestMemValidate")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
@@ -205,9 +193,6 @@ func TestMemValidate(t *testing.T) {
 }
 func TestMemAltValidate(t *testing.T) {
 	fmt.Println("Now Running TestMemAltValidate")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
@@ -290,9 +275,6 @@ func TestMemAltValidate(t *testing.T) {
 
 func TestMemBufAltValidate(t *testing.T) {
 	fmt.Println("Now Running TestMemBufAltValidate")
-	Init()
-
-	defer Cleanup()
 
 	guard := make(chan struct{}, maxGoroutines)
 	var wg sync.WaitGroup
